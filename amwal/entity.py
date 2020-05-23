@@ -13,20 +13,19 @@ from amwal.exceptions import (
     StockNumberNotFoundError,
     TickerNotFoundError,
     MalformedCorpIdentifierError,
-    DontCacheException
+    DontCacheException,
 )
 from amwal.cache import DiskCache, LRUCache, cached_recomputable
 from amwal.extractor import RawExtractor
 from amwal.log import logger
+
 
 class Market:
 
     valid_stock_number_patt = re.compile(r"^\d{3,4}$")
     valid_ticker_patt = re.compile(r"^[A-Z]+$")
 
-    def __init__(
-        self, downloader=SyncDownloader, cache=None, extractor=RawExtractor
-    ):
+    def __init__(self, downloader=SyncDownloader, cache=None, extractor=RawExtractor):
         self.downloader = downloader
         self.cache = DiskCache() if not cache else cache
         self.extractor = extractor
@@ -36,8 +35,8 @@ class Market:
         date = date.strip()
         key = Market.date_to_id(date)
 
-        #raise not cache exception if date invalid
-        if 'recompute' not in kwargs or not kwargs['recompute']: 
+        # raise not cache exception if date invalid
+        if "recompute" not in kwargs or not kwargs["recompute"]:
             cache_result = self.cache[key]
             if cache_result:
                 return cache_result
@@ -52,7 +51,7 @@ class Market:
     def listing(self, **kwargs):
         key = "listing"
 
-        if not ('recompute' in kwargs and kwargs['recompute']): 
+        if not ("recompute" in kwargs and kwargs["recompute"]):
             cache_result = self.cache[key]
             if cache_result:
                 return cache_result

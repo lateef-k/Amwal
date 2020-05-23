@@ -3,6 +3,7 @@ from enum import Enum
 from amwal import url
 from amwal.log import logger
 
+
 class FinDataType(Enum):
     INCOME_STATEMENT = "income-statement"
     BALANCE_SHEET = "balance-sheet"
