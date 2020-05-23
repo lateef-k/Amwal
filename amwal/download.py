@@ -1,5 +1,6 @@
 import requests
 from enum import Enum
+
 from amwal import url
 from amwal.log import logger
 

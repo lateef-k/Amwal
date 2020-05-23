@@ -7,7 +7,6 @@ from functools import lru_cache
 from dateutil import parser  # use this for date parsing/checking
 
 
-from amwal import url
 from amwal.download import SyncDownloader
 from amwal.exceptions import (
     StockNumberNotFoundError,
@@ -15,9 +14,9 @@ from amwal.exceptions import (
     MalformedCorpIdentifierError,
     DontCacheException,
 )
-from amwal.cache import DiskCache, LRUCache, cached_recomputable
-from amwal.extractor import RawExtractor
+from amwal.extract import RawExtractor
 from amwal.log import logger
+from amwal.core import Engine
 
 
 class Market:
@@ -26,43 +25,18 @@ class Market:
     valid_ticker_patt = re.compile(r"^[A-Z]+$")
 
     def __init__(self, downloader=SyncDownloader, cache=None, extractor=RawExtractor):
-        self.downloader = downloader
-        self.cache = DiskCache() if not cache else cache
-        self.extractor = extractor
+        self.engine = Engine(downloader=downloader, cache=cache, extractor=extractor)
 
-    @cached_recomputable(LRUCache(maxsize=365))
     def daily_bulletin(self, date, **kwargs):
         date = date.strip()
-        key = Market.date_to_id(date)
+        date = date.replace("/", "_")
+        return self.engine.daily_bulletin(date)
 
-        # raise not cache exception if date invalid
-        if "recompute" not in kwargs or not kwargs["recompute"]:
-            cache_result = self.cache[key]
-            if cache_result:
-                return cache_result
-
-        # should validate date here with dateutil.parsing
-        res = self.downloader.daily_bulletin(date)
-        res = self.extractor.daily_bulletin(res)
-        self.cache[key] = res
-        return res
-
-    @property
     def listing(self, **kwargs):
-        key = "listing"
-
-        if not ("recompute" in kwargs and kwargs["recompute"]):
-            cache_result = self.cache[key]
-            if cache_result:
-                return cache_result
-
-        res = self.downloader.listing()
-        res = self.extractor.listing(res)
-        self.cache[key] = res
-        return res
+        return self.engine.listing(**kwargs)
 
     def find_ticker(self, ticker):
-        listing = self.listing
+        listing = self.listing()
         found = [stock for stock in listing if stock[1] == ticker]
         if found:
             found = found[0]
@@ -77,7 +51,7 @@ class Market:
             raise TickerNotFoundError(ticker)
 
     def find_stock_number(self, stock_number):
-        listing = self.listing
+        listing = self.listing()
         found = [stock for stock in listing if stock[0] == stock_number]
         if found:
             found = found[0]
@@ -104,10 +78,6 @@ class Market:
             return True
         else:
             return False
-
-    @staticmethod
-    def date_to_id(date):
-        return date.replace("/", "_")
 
     def get_corporation(self, ident):
         return Corporation(ident, self)
@@ -145,16 +115,5 @@ class Corporation:
         self.listing_type = ret["listing_type"]
         self._market = market
 
-    @property
     def income_statement(self, **kwargs):
-        key = f"{self.ticker}_income_stmt"
-
-        cache_result = self._market.cache[key]
-        if cache_result:
-            return cache_result
-
-        res = self._market.downloader.income_statement(self.stock_number)
-        res = self._market.extractor.income_statement(res)
-
-        self._market.cache[key] = res
-        return res
+        return self._market.engine.income_statement(self.stock_number)
