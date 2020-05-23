@@ -1,3 +1,7 @@
-from amwal.entity import Corporation, Market
+
+from amwal.entity import Market
+
 
 __all__ = ["Corporation, Market"]
+
+

@@ -1,42 +1,60 @@
 import json
 from pathlib import Path
 
-from amwal.config import *
+from amwal.log import logger
+from amwal.exceptions import DontCacheException
+
+from cachetools import LRUCache,keys
 
 
-class JsonCache:
+class DiskCache:
+
     def __init__(
-        self, cache_dir="boursa_cache", file_extension=".json",
+        self, cache_path="amwal_cache"
     ):
-        self.cache_dir = Path(cache_dir)
-        self.serialize = json.dumps
-        self.deserialize = json.loads
-        self.file_extension = file_extension
+        self._cache_path = Path(cache_path)
+        self._serialize = json.dumps
+        self._deserialize = json.loads
+        self._file_extension = ".json"
         self.enabled = True
 
-    def disable(self):
-        logger.info("cache turned off")
-        self.enabled = False
+    def __repr__(self):
+      return f"DiskCache {self._cache_path}"
 
-    def enable(self):
-        logger.info("cache turned off")
-        self.enabled = True
-
-    def add_resource(self, id_, resource):
+    def __getitem__(self, key):
         if not self.enabled:
-            return
-        with (self.cache_dir / (id_ + self.file_extension)).open("w+") as file:
-            logger.info(f"Add {id_} to cache")
-            file.write(self.serialize(resource))
-
-    def get_resource(self, id_):
-        if not self.enabled:
-            return
-        if not self.cache_dir.exists():
-            self.cache_dir.mkdir()
-        if not list(self.cache_dir.glob(id_ + self.file_extension)):
-            logger.info(f"Cache miss for {id_}")
             return None
-        with (self.cache_dir / (id_ + self.file_extension)).open() as file:
-            logger.info(f"Cache hit for {id_}")
-            return self.deserialize(file.read())
+        if not self._cache_path.exists():
+            self._cache_path.mkdir()
+        if not list(self._cache_path.glob(key + self._file_extension)):
+            logger.info(f"Cache miss for {key}")
+            return None
+        with (self._cache_path / (key + self._file_extension)).open() as file:
+            logger.info(f"Cache hit for {key}")
+            return self._deserialize(file.read())
+
+    def __setitem__(self, key,value):
+        if not self.enabled:
+            return
+        with (self._cache_path / (key + self._file_extension)).open("w+") as file:
+            logger.info(f"Add {key} to cache")
+            file.write(self._serialize(value))
+
+def cached_recomputable(cache, key=keys.hashkey):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            k = key(*args, **kwargs)
+            if "recompute" not in kwargs or not kwargs['recompute']:
+                try:
+                    return cache[k]
+                except KeyError:
+                    pass  # key not found
+            try: 
+                v = func(*args, **kwargs)
+            except DontCacheException:
+                pass
+            else:
+                cache[k] = v
+                return v
+        return wrapper
+    return decorator

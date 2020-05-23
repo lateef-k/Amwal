@@ -13,3 +13,7 @@ class TickerNotFoundError(Exception):
 class MalformedCorpIdentifierError(Exception):
     def __init__(self, ident):
         super().__init__(f"{ident} is neither a well-formed ticker nor a stock number")
+
+
+class DontCacheException(Exception):
+    pass

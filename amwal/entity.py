@@ -13,11 +13,11 @@ from amwal.exceptions import (
     StockNumberNotFoundError,
     TickerNotFoundError,
     MalformedCorpIdentifierError,
+    DontCacheException
 )
-from amwal.cache import JsonCache
+from amwal.cache import DiskCache, LRUCache, cached_recomputable
 from amwal.extractor import RawExtractor
-from amwal.config import *
-
+from amwal.log import logger
 
 class Market:
 
@@ -25,40 +25,46 @@ class Market:
     valid_ticker_patt = re.compile(r"^[A-Z]+$")
 
     def __init__(
-        self, downloader=SyncDownloader, cache=JsonCache(), extractor=RawExtractor
+        self, downloader=SyncDownloader, cache=None, extractor=RawExtractor
     ):
         self.downloader = downloader
-        self.cache = cache
+        self.cache = DiskCache() if not cache else cache
         self.extractor = extractor
 
-    @lru_cache(365)
-    def daily_bulletin(self, date):
+    @cached_recomputable(LRUCache(maxsize=365))
+    def daily_bulletin(self, date, **kwargs):
         date = date.strip()
+        key = Market.date_to_id(date)
+
+        #raise not cache exception if date invalid
+        if 'recompute' not in kwargs or not kwargs['recompute']: 
+            cache_result = self.cache[key]
+            if cache_result:
+                return cache_result
+
         # should validate date here with dateutil.parsing
-        cache_result = self.cache.get_resource(Market.date_to_id(date))
-        if cache_result:
-            return cache_result
         res = self.downloader.daily_bulletin(date)
         res = self.extractor.daily_bulletin(res)
-        self.cache.add_resource(Market.date_to_id(date), res)
+        self.cache[key] = res
         return res
 
-    @lru_cache(maxsize=1)
-    def listing(self):
-        listing_id = "listing"
+    @property
+    def listing(self, **kwargs):
+        key = "listing"
 
-        cache_result = self.cache.get_resource(listing_id)
-        if cache_result:
-            return cache_result
+        if not ('recompute' in kwargs and kwargs['recompute']): 
+            cache_result = self.cache[key]
+            if cache_result:
+                return cache_result
 
         res = self.downloader.listing()
         res = self.extractor.listing(res)
-        self.cache.add_resource(listing_id, res)
+        self.cache[key] = res
         return res
 
     def find_ticker(self, ticker):
-        finlan = self.listing()
-        found = [stock for stock in finlan if stock[1] == ticker]
+        listing = self.listing
+        found = [stock for stock in listing if stock[1] == ticker]
         if found:
             found = found[0]
             return {
@@ -72,8 +78,8 @@ class Market:
             raise TickerNotFoundError(ticker)
 
     def find_stock_number(self, stock_number):
-        finlan = self.listing()
-        found = [stock for stock in finlan if stock[0] == stock_number]
+        listing = self.listing
+        found = [stock for stock in listing if stock[0] == stock_number]
         if found:
             found = found[0]
             return {
@@ -104,20 +110,16 @@ class Market:
     def date_to_id(date):
         return date.replace("/", "_")
 
-    @staticmethod
-    def process_json(raw):
-        raw = json.loads(raw)["d"]
-        raw = json.loads(raw)["aaData"]
-        return raw
-
     def get_corporation(self, ident):
         return Corporation(ident, self)
 
     def disable_cache(self):
-        self.cache.disable()
+        logger.info("Disabling disk cache")
+        DiskCache.enabled = False
 
     def enable_cache(self):
-        self.cache.enable()
+        logger.info("Enabling disk cache")
+        DiskCache.enabled = True
 
 
 class Corporation:
@@ -145,16 +147,15 @@ class Corporation:
         self._market = market
 
     @property
-    def income_statement(self):
-        inc_stmt_id = f"{self.ticker}_income_stmt"
+    def income_statement(self, **kwargs):
+        key = f"{self.ticker}_income_stmt"
 
-        cache_result = self._market.cache.get_resource(inc_stmt_id)
+        cache_result = self._market.cache[key]
         if cache_result:
             return cache_result
 
         res = self._market.downloader.income_statement(self.stock_number)
         res = self._market.extractor.income_statement(res)
 
-        self._market.cache.add_resource(inc_stmt_id, res)
-
+        self._market.cache[key] = res
         return res

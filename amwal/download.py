@@ -1,8 +1,7 @@
 import requests
 from enum import Enum
 from amwal import url
-from amwal.config import *
-
+from amwal.log import logger
 
 class FinDataType(Enum):
     INCOME_STATEMENT = "income-statement"
