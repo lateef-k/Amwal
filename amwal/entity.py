@@ -24,8 +24,8 @@ class Market:
     valid_stock_number_patt = re.compile(r"^\d{3,4}$")
     valid_ticker_patt = re.compile(r"^[A-Z]+$")
 
-    def __init__(self, downloader=SyncDownloader, cache=None, extractor=RawExtractor):
-        self.engine = Engine(downloader=downloader, cache=cache, extractor=extractor)
+    def __init__(self, downloader=SyncDownloader, extractor=RawExtractor):
+        self.engine = Engine(downloader=downloader, extractor=extractor)
 
     def daily_bulletin(self, date, **kwargs):
         date = date.strip()
@@ -81,15 +81,6 @@ class Market:
 
     def get_corporation(self, ident):
         return Corporation(ident, self)
-
-    def disable_cache(self):
-        logger.info("Disabling disk cache")
-        DiskCache.enabled = False
-
-    def enable_cache(self):
-        logger.info("Enabling disk cache")
-        DiskCache.enabled = True
-
 
 class Corporation:
     def __init__(self, ident, market):

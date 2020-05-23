@@ -1,10 +1,8 @@
 import json
-
 from pathlib import Path
 from cachetools import LRUCache
 
 from amwal.log import logger
-from amwal.exceptions import DontCacheException
 
 
 class DiskCache:

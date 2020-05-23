@@ -1,12 +1,10 @@
-from amwal.download import SyncDownloader
-from amwal.extract import RawExtractor
+
 from amwal.cache import DiskCache, MemoryCache, cached
 
 
 class Engine:
-    def __init__(self, downloader=SyncDownloader, cache=None, extractor=RawExtractor):
+    def __init__(self, downloader, extractor):
         self.downloader = downloader
-        self.cache = DiskCache() if not cache else cache
         self.extractor = extractor
 
     @cached([MemoryCache(maxsize=365), DiskCache()])
