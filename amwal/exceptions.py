@@ -15,5 +15,8 @@ class MalformedCorpIdentifierError(Exception):
         super().__init__(f"{ident} is neither a well-formed ticker nor a stock number")
 
 
-class DontCacheException(Exception):
-    pass
+class MalformedDateStringError(Exception):
+    def __init__(self, date):
+        super().__init__(
+            f"{date} is not a well-formed date string, please use the format DD/MM/YYYY"
+        )

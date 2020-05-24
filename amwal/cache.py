@@ -31,9 +31,6 @@ class DiskCache:
             logger.info(f"Saved {key} to disk")
             file.write(self._serialize(value))
 
-    def check(self):
-        return self._cache_path.exists()
-
     def __contains__(self, key):
         return bool(list(self._cache_path.glob(key + self._file_extension)))
 
@@ -52,7 +49,6 @@ def cached(caches):
                     key += "_" + arg
                 elif isinstance(arg, int):
                     key += "_" + str(arg)
-            print(key)
             for cache in caches:
                 enabled = cache.__class__.enabled
                 if not enabled:

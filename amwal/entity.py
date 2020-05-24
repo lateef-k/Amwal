@@ -1,9 +1,4 @@
-import requests
-import json
 import re
-from enum import Enum
-from bs4 import BeautifulSoup
-from functools import lru_cache
 from dateutil import parser  # use this for date parsing/checking
 
 
@@ -12,11 +7,11 @@ from amwal.exceptions import (
     StockNumberNotFoundError,
     TickerNotFoundError,
     MalformedCorpIdentifierError,
-    DontCacheException,
+    MalformedDateStringError,
 )
-from amwal.extract import RawExtractor
 from amwal.log import logger
 from amwal.core import Engine
+from amwal.extract import DataFrameExtractor
 
 
 class Market:
@@ -24,19 +19,24 @@ class Market:
     valid_stock_number_patt = re.compile(r"^\d{3,4}$")
     valid_ticker_patt = re.compile(r"^[A-Z]+$")
 
-    def __init__(self, downloader=SyncDownloader, extractor=RawExtractor):
-        self.engine = Engine(downloader=downloader, extractor=extractor)
+    def __init__(self, downloader=SyncDownloader):
+        self.engine = Engine(downloader=downloader)
 
     def daily_bulletin(self, date, **kwargs):
-        date = date.strip()
+        try:
+            date = parser.parse(date)
+        except ValueError:
+            raise MalformedDateStringError(date)
+        else:
+            date = date.strftime("%d/%m/%Y")
         date = date.replace("/", "_")
-        return self.engine.daily_bulletin(date)
+        return DataFrameExtractor.daily_bulletin(self.engine.daily_bulletin(date))
 
     def listing(self, **kwargs):
-        return self.engine.listing(**kwargs)
+        return DataFrameExtractor.listing(self.engine.listing(**kwargs))
 
     def find_ticker(self, ticker):
-        listing = self.listing()
+        listing = self.engine.listing()
         found = [stock for stock in listing if stock[1] == ticker]
         if found:
             found = found[0]
@@ -51,7 +51,7 @@ class Market:
             raise TickerNotFoundError(ticker)
 
     def find_stock_number(self, stock_number):
-        listing = self.listing()
+        listing = self.engine.listing()
         found = [stock for stock in listing if stock[0] == stock_number]
         if found:
             found = found[0]
@@ -82,6 +82,7 @@ class Market:
     def get_corporation(self, ident):
         return Corporation(ident, self)
 
+
 class Corporation:
     def __init__(self, ident, market):
 
@@ -106,5 +107,11 @@ class Corporation:
         self.listing_type = ret["listing_type"]
         self._market = market
 
-    def income_statement(self, **kwargs):
+    def _income_statement(self, **kwargs):
         return self._market.engine.income_statement(self.stock_number)
+
+    def yearly_income(self, **kwargs):
+        return DataFrameExtractor.yearly_income(self._income_statement(**kwargs))
+
+    def quarterly_income(self, **kwargs):
+        return DataFrameExtractor.quarterly_income(self._income_statement(**kwargs))
