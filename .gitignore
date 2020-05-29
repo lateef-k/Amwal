@@ -2,5 +2,5 @@ test
 main.py
 notes.md
 
-amwal_cache/
+amwal_cache*
 __pycache__/

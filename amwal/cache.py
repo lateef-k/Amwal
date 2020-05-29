@@ -56,7 +56,7 @@ def cached(caches):
                 if key in cache and not recompute:
                     val = cache[key]
                     break
-            if not val:
+            if val == None:
                 val = func(*args, **kwargs)
             for cache in caches:
                 enabled = cache.__class__.enabled
