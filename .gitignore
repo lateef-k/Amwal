@@ -3,4 +3,5 @@ main.py
 notes.md
 
 amwal_cache*
+amwal.sqlite
 __pycache__/
