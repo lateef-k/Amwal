@@ -36,5 +36,13 @@ class SyncDownloader:
         session = requests.session()
         session.cookies.set(name="bk_lang", value="rK1YIM29JoA=")
         logger.info(f"Scraping the income statement of {stock_number}")
-        res = session.get(url.fin_url(stock_number, FinDataType.INCOME_STATEMENT.value))
+        res = session.get(url.findata(stock_number, FinDataType.INCOME_STATEMENT.value))
+        return res.content
+
+    @staticmethod
+    def profile(stock_number):
+        session = requests.session()
+        session.cookies.set(name="bk_lang", value="rK1YIM29JoA=")
+        logger.info(f"Scraping the profile of {stock_number}")
+        res = session.get(url.profile(stock_number))
         return res.content

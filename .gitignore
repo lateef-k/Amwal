@@ -2,6 +2,7 @@ test
 main.py
 notes.md
 
+test.db
 amwal_cache*
 amwal.sqlite
 __pycache__/

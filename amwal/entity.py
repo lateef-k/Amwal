@@ -108,7 +108,13 @@ class Corporation:
         self._market = market
 
     def _income_statement(self, **kwargs):
-        return self._market.engine.income_statement(self.stock_number)
+        return self._market.engine.income_statement(self.stock_number, **kwargs)
+
+    def _price_history(self, **kwargs):
+        return self._market.engine.price_history(self.stock_number, **kwargs)
+
+    def price_history(self, **kwargs):
+        return DataFrameExtractor.price_history(self._price_history(**kwargs))
 
     def yearly_income(self, **kwargs):
         return DataFrameExtractor.yearly_income(self._income_statement(**kwargs))

@@ -5,5 +5,9 @@ listing = (
 )
 
 
-def fin_url(stock_number, findata_kind):
+def findata(stock_number, findata_kind):
     return f"https://www.boursakuwait.com.kw/stock/{stock_number}/financial-data/{findata_kind}"
+
+
+def profile(stock_number):
+    return f"https://www.boursakuwait.com.kw/stock/{stock_number}/profile"

@@ -1,8 +1,9 @@
 import json
+from functools import partial
+from datetime import datetime
+
 from bs4 import BeautifulSoup
 import pandas as pd
-
-from functools import partial
 
 identity = lambda i: i
 to_datetime = partial(pd.to_datetime, format="%d/%m/%Y")
@@ -80,6 +81,17 @@ HEADERS = {
 
 class RawExtractor:
     @staticmethod
+    def price_history(doc):
+        soup = BeautifulSoup(doc, features="html.parser")
+        loaded = json.loads(soup.find(id="lblJSONStock").text)
+        price_history = loaded["snapshot_chart_data"]
+        price_history = [
+            (datetime.fromtimestamp(pair[0] / 1000).strftime("%d/%m/%Y"), pair[1])
+            for pair in price_history
+        ]
+        return price_history
+
+    @staticmethod
     def daily_bulletin(doc):
         return RawExtractor.process_json(doc)
 
@@ -145,6 +157,12 @@ class RawExtractor:
 
 
 class DataFrameExtractor:
+    @staticmethod
+    def price_history(doc):
+        date_index,price_points = zip(*doc)
+        df = pd.Series(price_points, index=to_datetime(date_index))
+        return df
+
     @staticmethod
     def daily_bulletin(doc):
         df = pd.DataFrame(

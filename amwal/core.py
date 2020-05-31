@@ -34,3 +34,14 @@ class Engine:
         res = self.downloader.income_statement(stock_number)
         res = RawExtractor.income_statement(res)
         return res
+
+    @cached(
+        [
+            MemoryCache(maxsize=365),
+            SqliteCache(filename="amwal.sqlite", autocommit=True),
+        ]
+    )
+    def price_history(self, stock_number):
+        res = self.downloader.profile(stock_number)
+        res = RawExtractor.price_history(res)
+        return res
