@@ -1,11 +1,19 @@
 import json
 from pathlib import Path
 from cachetools import LRUCache
+from sqlitedict import SqliteDict
 
 from amwal.log import logger
 
 
-class DiskCache:
+class MemoryCache(LRUCache):
+    enabled = True
+
+    def __repr__(self):
+        return f"MemoryCache"
+
+
+class JsonCache:
 
     enabled = True
     __slots__ = ("_cache_path", "_serialize", "_deserialize", "_file_extension")
@@ -35,7 +43,7 @@ class DiskCache:
         return bool(list(self._cache_path.glob(key + self._file_extension)))
 
 
-class MemoryCache(LRUCache):
+class SqliteCache(SqliteDict):
     enabled = True
 
 
@@ -54,6 +62,7 @@ def cached(caches):
                 if not enabled:
                     continue
                 if key in cache and not recompute:
+                    logger.debug(f"Cache hit in {cache} for {key}")
                     val = cache[key]
                     break
             if val == None:
