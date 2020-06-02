@@ -1,9 +1,8 @@
 import json
+import pandas as pd
 from functools import partial
 from datetime import datetime
-
 from bs4 import BeautifulSoup
-import pandas as pd
 
 identity = lambda i: i
 to_datetime = partial(pd.to_datetime, format="%d/%m/%Y")
@@ -111,7 +110,7 @@ class RawExtractor:
     def income_statement(doc):
         soup = BeautifulSoup(doc, features="html.parser")
         rows_html = soup.find_all("tr")
-        rows_html = [[elm.string for elm in row.children] for row in rows_html]
+        rows_html = [[str(elm.string) for elm in row.children] for row in rows_html]
 
         yearly_header = []
         yearly_html = []
@@ -120,7 +119,7 @@ class RawExtractor:
 
         # This deletes the 4 quarter data. should store it somehow later
         for i in range(len(rows_html)):
-            if len(rows_html[i]) < 11:
+            if len(rows_html[i]) == 5:
                 yearly_header = rows_html[0][1:]
                 yearly_html = rows_html[1:i]
                 quarterly_header = rows_html[i][1:]
@@ -159,7 +158,7 @@ class RawExtractor:
 class DataFrameExtractor:
     @staticmethod
     def price_history(doc):
-        date_index,price_points = zip(*doc)
+        date_index, price_points = zip(*doc)
         df = pd.Series(price_points, index=to_datetime(date_index))
         return df
 
