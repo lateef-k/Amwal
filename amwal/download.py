@@ -1,6 +1,7 @@
 import requests
 from enum import Enum
-
+import aiohttp
+import asyncio
 from amwal import url
 from amwal.log import logger
 
@@ -11,38 +12,60 @@ class FinDataType(Enum):
     CASH_FLOW_STATEMENT = "cash-flow-statement"
 
 
+LANG_COOKIE = {'bk_lang': 'rK1YIM29JoA='}
+JSON_HEADER = {"Content-Type": "application/json; charset=utf-8"}
+
+
 class SyncDownloader:
     @staticmethod
     def daily_bulletin(date):
-        session = requests.session()
-        session.cookies.set(name="bk_lang", value="rK1YIM29JoA=")
-        session.headers.update({"Content-Type": "application/json; charset=utf-8"})
-
         logger.info(f"Scraping daily bulletin on {date}")
-        res = session.post(url.bulletin, json={"d": date},)
+        res = requests.post(url.bulletin, headers=JSON_HEADER,
+                            cookies=LANG_COOKIE, json={"d": date})
         return res.content
 
     @staticmethod
     def listing():
-        session = requests.session()
-        session.cookies.set(name="bk_lang", value="rK1YIM29JoA=")
-        session.headers.update({"Content-Type": "application/json; charset=utf-8"})
         logger.info(f"Scraping the listed companies page")
-        res = session.post(url.listing, json={"cat": "listed", "instrument": ""})
+        res = requests.post(url.listing, headers=JSON_HEADER, cookies=LANG_COOKIE, json={
+            "cat": "listed", "instrument": ""})
         return res.content
 
     @staticmethod
     def income_statement(stock_number):
-        session = requests.session()
-        session.cookies.set(name="bk_lang", value="rK1YIM29JoA=")
         logger.info(f"Scraping the income statement of {stock_number}")
-        res = session.get(url.findata(stock_number, FinDataType.INCOME_STATEMENT.value))
+        res = requests.get(url.findata(
+            stock_number, FinDataType.INCOME_STATEMENT.value), cookies=LANG_COOKIE)
         return res.content
 
     @staticmethod
     def profile(stock_number):
-        session = requests.session()
-        session.cookies.set(name="bk_lang", value="rK1YIM29JoA=")
         logger.info(f"Scraping the profile of {stock_number}")
-        res = session.get(url.profile(stock_number))
+        res = requests.get(url.profile(stock_number), cookies=LANG_COOKIE)
         return res.content
+
+
+#class AsyncDownloader:
+#    @staticmethod
+#    async def daily_bulletin(date):
+#        async with aiohttp.ClientSession(headers=JSON_HEADER, cookies=LANG_COOKIE) as session:
+#            async with session.post(url.bulletin, json={"d": date}) as response:
+#                return await response.read()
+#
+#    @staticmethod
+#    async def listing():
+#        async with aiohttp.ClientSession(headers=JSON_HEADER, cookies=LANG_COOKIE) as session:
+#            async with session.post(url.listing, json={"cat": "listed", "instrument": ""}) as response:
+#                return await response.read()
+#
+#    @staticmethod
+#    async def income_statement(stock_number):
+#        async with aiohttp.ClientSession(cookies=LANG_COOKIE) as session:
+#            async with session.post(url.findata(stock_number, FinDataType.INCOME_STATEMENT.value)) as response:
+#                return await response.read()
+#
+#    @staticmethod
+#    async def profile(stock_number):
+#        async with aiohttp.ClientSession(cookies=LANG_COOKIE) as session:
+#            async with session.post(url.profile(stock_number)) as response:
+#                return await response.read()

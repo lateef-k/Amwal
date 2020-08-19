@@ -1,22 +1,14 @@
 import json
 from pathlib import Path
-from cachetools import LRUCache
-from sqlitedict import SqliteDict
 
 from amwal.log import logger
-
-
-class MemoryCache(LRUCache):
-    enabled = True
-
-    def __repr__(self):
-        return f"MemoryCache"
 
 
 class JsonCache:
 
     enabled = True
-    __slots__ = ("_cache_path", "_serialize", "_deserialize", "_file_extension")
+    __slots__ = ("_cache_path", "_serialize",
+                 "_deserialize", "_file_extension")
 
     def __init__(self, cache_path="amwal_cache"):
         self._cache_path = Path(cache_path)
@@ -41,10 +33,6 @@ class JsonCache:
 
     def __contains__(self, key):
         return bool(list(self._cache_path.glob(key + self._file_extension)))
-
-
-class SqliteCache(SqliteDict):
-    enabled = True
 
 
 def cached(caches):

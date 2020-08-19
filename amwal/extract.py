@@ -4,7 +4,10 @@ from functools import partial
 from datetime import datetime
 from bs4 import BeautifulSoup
 
-identity = lambda i: i
+
+def identity(i): return i
+
+
 to_datetime = partial(pd.to_datetime, format="%d/%m/%Y")
 
 
@@ -45,35 +48,35 @@ def float_or_nan(num):
 
 HEADERS = {
     "daily_bulletin": [
-        ("Date", to_datetime),
-        ("Stock", identity),
-        ("Ticker", identity),
-        ("Previous Close", to_numeric_float),
-        ("Opening Price", to_numeric_float),
-        ("High", to_numeric_float),
-        ("Low", to_numeric_float),
-        ("Close", to_numeric_float),
-        ("Change to Previous Close", to_numeric_float),
-        ("Change to Previous Close %", to_numeric_float),
-        ("Remaining Best Bid Price", to_numeric_float),
-        ("Remaining Best Bid Volume", to_numeric_int),
-        ("Remaining Best Ask Price", to_numeric_float),
-        ("Remaining Best Ask Volume", to_numeric_int),
-        ("VWAP", to_numeric_float),
-        ("Volume", to_numeric_int),
-        ("Total Trades", to_numeric_int),
-        ("Value", to_numeric_float),
-        ("Previous Trade Date", to_datetime),
-        ("Market Segment", to_categorical),
+        ("date", to_datetime),
+        ("stock", identity),
+        ("ticker", identity),
+        ("previous_close", to_numeric_float),
+        ("opening_price", to_numeric_float),
+        ("high", to_numeric_float),
+        ("low", to_numeric_float),
+        ("close", to_numeric_float),
+        ("change_to_previous_close", to_numeric_float),
+        ("change_to_previous_close_percent", to_numeric_float),
+        ("remaining_best_bid_price", to_numeric_float),
+        ("remaining_best_bid_volume", to_numeric_int),
+        ("remaining_best_ask_price", to_numeric_float),
+        ("remaining_best_ask_volume", to_numeric_int),
+        ("vwap", to_numeric_float),
+        ("volume", to_numeric_int),
+        ("total_trades", to_numeric_int),
+        ("value", to_numeric_float),
+        ("previous_trade_date", to_datetime),
+        ("market_segment", to_categorical),
     ],
     "listing": [
-        ("Sec. Code", identity),
-        ("Ticker", identity),
-        ("Warning", to_categorical),
-        ("Name", identity),
-        ("Short Selling", identity),
-        ("Sector", to_categorical),
-        ("Market Segment", to_categorical),
+        ("sec_code", identity),
+        ("ticker", identity),
+        ("warning", to_categorical),
+        ("name", identity),
+        ("short_selling", identity),
+        ("sector", to_categorical),
+        ("market_segment", to_categorical),
     ],
 }
 
@@ -85,7 +88,8 @@ class RawExtractor:
         loaded = json.loads(soup.find(id="lblJSONStock").text)
         price_history = loaded["snapshot_chart_data"]
         price_history = [
-            (datetime.fromtimestamp(pair[0] / 1000).strftime("%d/%m/%Y"), pair[1])
+            (datetime.fromtimestamp(pair[0] /
+                                    1000).strftime("%d/%m/%Y"), pair[1])
             for pair in price_history
         ]
         return price_history
@@ -110,7 +114,8 @@ class RawExtractor:
     def income_statement(doc):
         soup = BeautifulSoup(doc, features="html.parser")
         rows_html = soup.find_all("tr")
-        rows_html = [[str(elm.string) for elm in row.children] for row in rows_html]
+        rows_html = [[str(elm.string) for elm in row.children]
+                     for row in rows_html]
 
         yearly_header = []
         yearly_html = []
@@ -123,7 +128,7 @@ class RawExtractor:
                 yearly_header = rows_html[0][1:]
                 yearly_html = rows_html[1:i]
                 quarterly_header = rows_html[i][1:]
-                quarterly_html = rows_html[i + 1 :]
+                quarterly_html = rows_html[i + 1:]
                 break
 
         income_stmt_table = {
@@ -204,7 +209,8 @@ class DataFrameExtractor:
             and "body" in doc["quarterly"]
             and doc["quarterly"]["body"]
         ):
-            df = pd.DataFrame(doc["yearly"]["body"], index=doc["yearly"]["header"])
+            df = pd.DataFrame(doc["yearly"]["body"],
+                              index=doc["yearly"]["header"])
             return df
         else:
             return None

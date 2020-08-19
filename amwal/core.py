@@ -1,4 +1,4 @@
-from amwal.cache import JsonCache, MemoryCache, cached, SqliteCache
+from amwal.cache import JsonCache, cached
 from amwal.extract import RawExtractor
 
 
@@ -7,10 +7,7 @@ class Engine:
         self.downloader = downloader
 
     @cached(
-        [
-            MemoryCache(maxsize=365),
-            SqliteCache(filename="amwal.sqlite", autocommit=True),
-        ]
+        [JsonCache()]
     )
     def daily_bulletin(self, date):
         # should validate date here with dateutil.parsing
@@ -20,7 +17,7 @@ class Engine:
         return res
 
     @cached(
-        [MemoryCache(maxsize=1), SqliteCache(filename="amwal.sqlite", autocommit=True)]
+        [JsonCache()]
     )
     def listing(self):
         res = self.downloader.listing()
@@ -28,7 +25,7 @@ class Engine:
         return res
 
     @cached(
-        [MemoryCache(maxsize=1), SqliteCache(filename="amwal.sqlite", autocommit=True)]
+        [JsonCache()]
     )
     def income_statement(self, stock_number):
         res = self.downloader.income_statement(stock_number)
@@ -36,10 +33,7 @@ class Engine:
         return res
 
     @cached(
-        [
-            MemoryCache(maxsize=365),
-            SqliteCache(filename="amwal.sqlite", autocommit=True),
-        ]
+        [JsonCache()]
     )
     def price_history(self, stock_number):
         res = self.downloader.profile(stock_number)
