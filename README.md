@@ -34,6 +34,16 @@ listing = market.listing()
 
 The `listing` object is a pandas dataframe mirroring the [listing page](https://www.boursakuwait.com.kw/market-participants/listed-companies) of the Boursa website.
 
+To get the daily price bulletin for 05/05/2020 (day/month/year):
+
+```python 
+from amwal import Market
+
+market = Market()
+bulletin = market.daily_bulletin("05/05/2020")
+```
+
+
 To get information on a specific company, we first get an object representing the company. The `Market` object has a method called `get_corporation`. It takes a valid ticker or stock number and returns a `Corporation` object. For example, to get zain's price history
 
 ```python
@@ -70,7 +80,7 @@ from amwal.cache import JsonCache
 JsonCache.enabled = False
 ```
 
-Or for a single function call by passed the `recompute=True` argument
+Or for a single function call by passing the `recompute=True` argument
 ```python
 zain = zain.price_history(recompute=True)
 ```
@@ -93,6 +103,7 @@ You can get some output by passing a `verbose=True` argument to the scraping fun
 class Market(cache_path='amwal_cache', downloader=SyncDownloader) -> Market
 
   def daily_bulletin(self, date: str, verbose: bool = False, recompute: bool = False) ‑> pandas.core.frame.DataFrame 
+  #date should be a string formatted as dd/mm/yyyyy
 
   def listing(self, verbose: bool = False, recompute: bool = False) ‑> pandas.core.frame.DataFrame 
 
