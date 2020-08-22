@@ -115,8 +115,8 @@ class Market(cache_path='amwal_cache', downloader=SyncDownloader) -> Market
 
   def get_corporation(self, ident: str, verbose: bool = False) ‑> Corporation 
 
-#You should not call this constructor directly, use get_corporation instead.
 class Corporation (ident: str, market: Market, **kwargs)  
+#You should not call this constructor directly, use get_corporation instead.
 
   def price_history(self, verbose: bool = False, recompute: bool = False) ‑> pandas.core.frame.DataFrame 
 
