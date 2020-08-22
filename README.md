@@ -11,7 +11,7 @@ Some features to make life easier
 ## Installation
 
 ```
-pip install amwal
+pip3 install amwal
 ```
 
 This project depends on the following libraries:
