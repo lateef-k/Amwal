@@ -1,7 +1,5 @@
 ## Amwal - Unofficial API For the Kuwaiti Stock Market (Boursa)
 
----
-
 Amwal is a small python library designed to make it easier to get information from the Kuwaiti stock market, known as the Boursa. Unfortunately, since the Boursa website doesn't have an official HTTP API, this is a substitute that offers the same function by scraping the website directly for the data. 
 
 ---
@@ -14,7 +12,7 @@ Some features to make life easier
 
 ---
 
-### Quick start
+## Quick start
 
 The main class representing the market as a whole is `amwal.Market`. For example, to get the companies listed on the Boursa:
 
@@ -44,8 +42,6 @@ This will return a dataframe containing price points streching back until 2004. 
 yearly_income = zain.yearly_income()
 ```
 It's pretty straightforward
-
----
 
 ## Notes
 
@@ -82,10 +78,7 @@ Pandas has many useful functions to serialize dataframes, or to convert from a d
 
 You can get some output by passing a `verbose=True` argument to the scraping functions.
 
-
----
-
-API 
+## API 
 
 ```python
 class Market(cache_path='amwal_cache', downloader=SyncDownloader) -> Market
@@ -114,7 +107,7 @@ class Corporation (ident: str, market: Market, **kwargs)
 
 ---
 
-TODO:
+### TODO:
 
 - Add balance sheet and cash flow statement methods to the corporation class.
 - Change scraping to be asynchronously. 
