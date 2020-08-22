@@ -1,6 +1,9 @@
+from __future__ import annotations
 import re
+import pathlib
 from dateutil import parser
 from pandas import DataFrame, Series
+
 
 from amwal.download import SyncDownloader
 from amwal.exceptions import (
@@ -12,20 +15,17 @@ from amwal.exceptions import (
 from amwal.log import logger
 from amwal.core import Engine
 from amwal.extract import DataFrameExtractor
-
-
-class Corporation:
-    pass
+from amwal.cache import JsonCache
 
 
 class Market:
-    "This class provides a simple interface to information on the Kuwait Stock Market (Boursa Kuwait). By default, an instance of *Market* the SyncDownloader class, which makes requests to boursakuwait.com.kw synchronously. "
 
     valid_stock_number_patt = re.compile(r"^\d{3,4}$")
     valid_ticker_patt = re.compile(r"^[A-Z]+$")
 
-    def __init__(self, downloader=SyncDownloader):
+    def __init__(self, cache_path="amwal_cache", downloader=SyncDownloader):
         self.engine = Engine(downloader=downloader)
+        JsonCache.cache_path = pathlib.Path(cache_path)
 
     def daily_bulletin(self, date: str, **kwargs) -> DataFrame:
         try:
@@ -35,13 +35,15 @@ class Market:
         else:
             date = date.strftime("%d/%m/%Y")
         date = date.replace("/", "_")
-        return DataFrameExtractor.daily_bulletin(self.engine.daily_bulletin(date))
+        return DataFrameExtractor.daily_bulletin(
+            self.engine.daily_bulletin(date, **kwargs)
+        )
 
     def listing(self, **kwargs) -> DataFrame:
         return DataFrameExtractor.listing(self.engine.listing(**kwargs))
 
-    def find_ticker(self, ticker: str) -> dict:
-        listing = self.engine.listing()
+    def find_ticker(self, ticker: str, **kwargs) -> dict:
+        listing = self.engine.listing(**kwargs)
         found = [stock for stock in listing if stock[1] == ticker]
         if found:
             found = found[0]
@@ -55,8 +57,8 @@ class Market:
         else:
             raise TickerNotFoundError(ticker)
 
-    def find_stock_number(self, stock_number: str) -> dict:
-        listing = self.engine.listing()
+    def find_stock_number(self, stock_number: str, **kwargs) -> dict:
+        listing = self.engine.listing(**kwargs)
         found = [stock for stock in listing if stock[0] == stock_number]
         if found:
             found = found[0]
@@ -84,12 +86,12 @@ class Market:
         else:
             return False
 
-    def get_corporation(self, ident: str) -> Corporation:
-        return Corporation(ident, self)
+    def get_corporation(self, ident: str, **kwargs) -> Corporation:
+        return Corporation(ident, self, **kwargs)
 
 
 class Corporation:
-    def __init__(self, ident: str, market: Market):
+    def __init__(self, ident: str, market: Market, **kwargs):
 
         if isinstance(ident, int):
             ident = str(ident)
@@ -99,9 +101,9 @@ class Corporation:
             raise MalformedCorpIdentifierError(ident)
 
         if market.is_stock_number(ident):
-            ret = market.find_stock_number(ident)
+            ret = market.find_stock_number(ident, **kwargs)
         elif market.is_ticker(ident):
-            ret = market.find_ticker(ident)
+            ret = market.find_ticker(ident, **kwargs)
         else:
             raise MalformedCorpIdentifierError(ident)
 

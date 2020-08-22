@@ -1,9 +1,9 @@
-test*
-main.py
-notes.md
-html/*
 
-test.db
-amwal_cache*
-amwal.sqlite
-__pycache__/
+*
+!amwal/
+!LICENSE
+!README.md
+!requirements.txt
+!scripts/
+!setup.py
+:

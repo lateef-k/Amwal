@@ -1,7 +1,7 @@
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 handler.setFormatter(
     logging.Formatter(
@@ -9,3 +9,6 @@ handler.setFormatter(
     )
 )
 logger.addHandler(handler)
+
+# Disable by default
+logger.disabled = True

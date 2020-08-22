@@ -1,7 +1,8 @@
 import requests
 from enum import Enum
-import aiohttp
-import asyncio
+
+# import aiohttp
+# import asyncio
 from amwal import url
 from amwal.log import logger
 
@@ -12,7 +13,7 @@ class FinDataType(Enum):
     CASH_FLOW_STATEMENT = "cash-flow-statement"
 
 
-LANG_COOKIE = {'bk_lang': 'rK1YIM29JoA='}
+LANG_COOKIE = {"bk_lang": "rK1YIM29JoA="}
 JSON_HEADER = {"Content-Type": "application/json; charset=utf-8"}
 
 
@@ -20,22 +21,29 @@ class SyncDownloader:
     @staticmethod
     def daily_bulletin(date):
         logger.info(f"Scraping daily bulletin on {date}")
-        res = requests.post(url.bulletin, headers=JSON_HEADER,
-                            cookies=LANG_COOKIE, json={"d": date})
+        res = requests.post(
+            url.bulletin, headers=JSON_HEADER, cookies=LANG_COOKIE, json={"d": date}
+        )
         return res.content
 
     @staticmethod
     def listing():
         logger.info(f"Scraping the listed companies page")
-        res = requests.post(url.listing, headers=JSON_HEADER, cookies=LANG_COOKIE, json={
-            "cat": "listed", "instrument": ""})
+        res = requests.post(
+            url.listing,
+            headers=JSON_HEADER,
+            cookies=LANG_COOKIE,
+            json={"cat": "listed", "instrument": ""},
+        )
         return res.content
 
     @staticmethod
     def income_statement(stock_number):
         logger.info(f"Scraping the income statement of {stock_number}")
-        res = requests.get(url.findata(
-            stock_number, FinDataType.INCOME_STATEMENT.value), cookies=LANG_COOKIE)
+        res = requests.get(
+            url.findata(stock_number, FinDataType.INCOME_STATEMENT.value),
+            cookies=LANG_COOKIE,
+        )
         return res.content
 
     @staticmethod
@@ -45,7 +53,7 @@ class SyncDownloader:
         return res.content
 
 
-#class AsyncDownloader:
+# class AsyncDownloader:
 #    @staticmethod
 #    async def daily_bulletin(date):
 #        async with aiohttp.ClientSession(headers=JSON_HEADER, cookies=LANG_COOKIE) as session:

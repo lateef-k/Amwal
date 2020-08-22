@@ -7,37 +7,36 @@ from amwal.log import logger
 class JsonCache:
 
     enabled = True
-    __slots__ = ("_cache_path", "_serialize",
-                 "_deserialize", "_file_extension")
+    __slots__ = ("_cache_path", "_serialize", "_deserialize", "_file_extension")
+    cache_path = Path("amwal_cache")
 
-    def __init__(self, cache_path="amwal_cache"):
-        self._cache_path = Path(cache_path)
-        self._serialize = json.dumps
-        self._deserialize = json.loads
+    def __init__(self):
         self._file_extension = ".json"
 
     def __repr__(self):
-        return f"DiskCache {self._cache_path}"
+        return f"JsonCache {JsonCache.cache_path}"
 
     def __getitem__(self, key):
-        with (self._cache_path / (key + self._file_extension)).open() as file:
+        with (JsonCache.cache_path / (key + self._file_extension)).open() as file:
             logger.info(f"Loaded {key} from disk")
-            return self._deserialize(file.read())
+            return json.loads(file.read())
 
     def __setitem__(self, key, value):
-        if not self._cache_path.exists():
-            self._cache_path.mkdir()
-        with (self._cache_path / (key + self._file_extension)).open("w+") as file:
+        if not JsonCache.cache_path.exists():
+            JsonCache.cache_path.mkdir()
+        with (JsonCache.cache_path / (key + self._file_extension)).open("w+") as file:
             logger.info(f"Saved {key} to disk")
-            file.write(self._serialize(value))
+            file.write(json.dumps(value))
 
     def __contains__(self, key):
-        return bool(list(self._cache_path.glob(key + self._file_extension)))
+        return bool(list(JsonCache.cache_path.glob(key + self._file_extension)))
 
 
 def cached(caches):
     def decorator(func):
         def wrapper(*args, recompute=False, **kwargs):
+            if "verbose" in kwargs and kwargs["verbose"]:
+                logger.disabled = not kwargs["verbose"]
             val = None
             key = func.__name__
             for arg in args:
@@ -50,7 +49,7 @@ def cached(caches):
                 if not enabled:
                     continue
                 if key in cache and not recompute:
-                    logger.debug(f"Cache hit in {cache} for {key}")
+                    logger.info(f"Cache hit in {cache} for {key}")
                     val = cache[key]
                     break
             if val == None:
