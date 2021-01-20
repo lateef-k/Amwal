@@ -1,3 +1,6 @@
+
+### (Doesn't work the the new site. Going to fix it)
+---
 ## Amwal - Unofficial API For the Kuwaiti Stock Market (Boursa)
 
 Amwal is a small python library designed to make it easier to get information from the Kuwaiti stock market, known as the Boursa. Unfortunately, since the Boursa website doesn't have an official HTTP API, this is a substitute that offers the same function by scraping the website directly for the data. 
