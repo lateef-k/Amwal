@@ -71,13 +71,12 @@ HEADERS = {
         ("market_segment", to_categorical),
     ],
     "listing": [
-        ("sec_code", identity),
-        ("ticker", identity),
-        ("warning", to_categorical),
-        ("name", identity),
-        ("short_selling", identity),
-        ("sector", to_categorical),
-        ("market_segment", to_categorical),
+        # NOTE: stock_index used to be sec_code
+        ("Stock Index", identity),
+        ("Name", identity),
+        ("Ticker", identity),
+        ("Sector", to_categorical),
+        ("Market Segment", to_categorical),
     ],
 }
 
@@ -89,7 +88,8 @@ class RawExtractor:
         loaded = json.loads(soup.find(id="lblJSONStock").text)
         price_history = loaded["snapshot_chart_data"]
         price_history = [
-            (datetime.fromtimestamp(pair[0] / 1000).strftime("%d/%m/%Y"), pair[1])
+            (datetime.fromtimestamp(pair[0] /
+                                    1000).strftime("%d/%m/%Y"), pair[1])
             for pair in price_history
         ]
         return price_history
@@ -100,21 +100,34 @@ class RawExtractor:
 
     @staticmethod
     def listing(doc):
-        processed_listing = RawExtractor.process_json(doc)
-        for row in processed_listing:
-            del row[0]
-            row[3] = BeautifulSoup(row[3], features="html.parser").text
-            if "#eed122" in row[2]:
-                row[2] = "RED"
-            elif "#FF0000" in row[2]:
-                row[2] = "YELLOW"
-        return processed_listing
+        data = json.loads(doc)['DAT']
+
+        listing_data = data['TD']
+        listing_data = [d.split("|") for d in listing_data]
+        listing_data = list(
+            filter(lambda row: row[1].split("`")[1] == "R", listing_data))
+
+        sectors = data['ID']
+        sectors = [string.split("|") for string in sectors]
+        sectors = {dat[1]: dat[4] for dat in sectors}
+
+        def simplify(raw):
+            return [ raw[12],
+                    raw[3],
+                    raw[19],
+                    sectors[raw[4]],
+                    {"P": "Premier Market", "M": "Main Market"}[raw[8]]
+                    ]
+            return
+
+        return list(map(simplify, listing_data))
 
     @staticmethod
     def income_statement(doc):
         soup = BeautifulSoup(doc, features="html.parser")
         rows_html = soup.find_all("tr")
-        rows_html = [[str(elm.string) for elm in row.children] for row in rows_html]
+        rows_html = [[str(elm.string) for elm in row.children]
+                     for row in rows_html]
 
         yearly_header = []
         yearly_html = []
@@ -127,7 +140,7 @@ class RawExtractor:
                 yearly_header = rows_html[0][1:]
                 yearly_html = rows_html[1:i]
                 quarterly_header = rows_html[i][1:]
-                quarterly_html = rows_html[i + 1 :]
+                quarterly_html = rows_html[i + 1:]
                 break
 
         income_stmt_table = {
@@ -208,7 +221,8 @@ class DataFrameExtractor:
             and "body" in doc["quarterly"]
             and doc["quarterly"]["body"]
         ):
-            df = pd.DataFrame(doc["yearly"]["body"], index=doc["yearly"]["header"])
+            df = pd.DataFrame(doc["yearly"]["body"],
+                              index=doc["yearly"]["header"])
             return df
         else:
             return None

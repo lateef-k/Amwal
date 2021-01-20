@@ -31,10 +31,11 @@ class SyncDownloader:
         logger.info(f"Scraping the listed companies page")
         res = requests.post(
             url.listing,
-            headers=JSON_HEADER,
-            cookies=LANG_COOKIE,
-            json={"cat": "listed", "instrument": ""},
+            #headers=JSON_HEADER,
+            #cookies=LANG_COOKIE,
+            #json={"cat": "listed", "instrument": ""},
         )
+        #breakpoint()
         return res.content
 
     @staticmethod
