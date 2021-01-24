@@ -1,5 +1,5 @@
 
-### (Doesn't work the the new site. Going to fix it)
+### (Doesn't work on the new site. Going to fix it)
 ---
 ## Amwal - Unofficial API For the Kuwaiti Stock Market (Boursa)
 
