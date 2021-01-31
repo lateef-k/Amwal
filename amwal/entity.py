@@ -27,6 +27,8 @@ class Market:
         self.engine = Engine(downloader=downloader)
         JsonCache.cache_path = pathlib.Path(cache_path)
 
+        logger.warning("The Boursa website has been updated, the library only works for Market.Listing and Corporation.price_history right now.")
+
     def daily_bulletin(self, date: str, **kwargs) -> DataFrame:
         try:
             date = parser.parse(date, dayfirst=True)

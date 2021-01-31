@@ -14,7 +14,7 @@ REQURIED = ['python-dateutil','pandas','requests','beautifulsoup4']
 
 setuptools.setup(
     name=NAME, 
-    version="0.0.2",
+    version="0.0.3",
     author=AUTHOR,
     author_email=EMAIL,
     description=DESCRIPTION,
