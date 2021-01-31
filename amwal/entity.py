@@ -33,8 +33,8 @@ class Market:
         except ValueError:
             raise MalformedDateStringError(date)
         else:
-            date = date.strftime("%d/%m/%Y")
-        date = date.replace("/", "_")
+            date = date.strftime("%d-%m-%Y")
+        date = date.replace("-", "_")
         return DataFrameExtractor.daily_bulletin(
             self.engine.daily_bulletin(date, **kwargs)
         )
@@ -43,34 +43,21 @@ class Market:
         return DataFrameExtractor.listing(self.engine.listing(**kwargs))
 
     def find_ticker(self, ticker: str, **kwargs) -> dict:
-        listing = self.engine.listing(**kwargs)
-        found = [stock for stock in listing if stock[1] == ticker]
-        if found:
-            found = found[0]
-            return {
-                "stock_number": found[0],
-                "ticker": found[1],
-                "name": found[3],
-                "sector": found[5],
-                "listing_type": found[6],
-            }
+        listing = self.listing()
+        found = listing.loc[lambda df: df['Ticker'] == ticker.upper()]
+        if not found.empty:
+            return found.to_dict("records")[0]
         else:
             raise TickerNotFoundError(ticker)
 
-    def find_stock_number(self, stock_number: str, **kwargs) -> dict:
-        listing = self.engine.listing(**kwargs)
-        found = [stock for stock in listing if stock[0] == stock_number]
-        if found:
-            found = found[0]
-            return {
-                "stock_number": found[0],
-                "ticker": found[1],
-                "name": found[3],
-                "sector": found[5],
-                "listing_type": found[6],
-            }
+    def find_stock_index(self, stock_index: int, **kwargs) -> dict:
+        listing = self.listing()
+        found = listing.loc[lambda df: df['Stock Index'] == stock_index]
+
+        if not found.empty:
+            return found.to_dict("records")[0]
         else:
-            raise StockNumberNotFoundError(stock_number)
+            raise StockNumberNotFoundError(stock_index)
 
     @staticmethod
     def is_ticker(ident: str) -> bool:
@@ -106,19 +93,18 @@ class Corporation:
             ret = market.find_ticker(ident, **kwargs)
         else:
             raise MalformedCorpIdentifierError(ident)
-
-        self.stock_number = ret["stock_number"]
-        self.ticker = ret["ticker"]
-        self.name = ret["name"]
-        self.sector = ret["sector"]
-        self.listing_type = ret["listing_type"]
+        self.index = ret["Stock Index"]
+        self.ticker = ret["Ticker"]
+        self.name = ret["Name"]
+        self.sector = ret["Sector"]
+        self.listing_type = ret["Market Segment"]
         self._market = market
 
     def _income_statement(self, **kwargs):
-        return self._market.engine.income_statement(self.stock_number, **kwargs)
+        return self._market.engine.income_statement(self.index, **kwargs)
 
     def _price_history(self, **kwargs):
-        return self._market.engine.price_history(self.stock_number, **kwargs)
+        return self._market.engine.price_history(self.ticker, **kwargs)
 
     def price_history(self, **kwargs):
         return DataFrameExtractor.price_history(self._price_history(**kwargs))

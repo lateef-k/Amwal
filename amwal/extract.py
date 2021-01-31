@@ -5,11 +5,14 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 
+to_datetime = partial(pd.to_datetime, format="%d-%m-%Y")
+
+
+def to_price(price): return price/10
+
+
 def identity(i):
     return i
-
-
-to_datetime = partial(pd.to_datetime, format="%d/%m/%Y")
 
 
 def to_numeric_float(series):
@@ -78,19 +81,28 @@ HEADERS = {
         ("Sector", to_categorical),
         ("Market Segment", to_categorical),
     ],
+    "price_history": [
+        ("Date", pd.to_datetime),
+        ("Open", to_numeric_float),
+        ("High", to_numeric_float),
+        ("Low", to_numeric_float),
+        ("Close", to_numeric_float),
+        ("Volume", to_numeric_int),
+        ("Total Value Traded", to_numeric_float),
+        # ("ID", to_numeric_int) #don't see a use for this now
+    ]
 }
 
 
 class RawExtractor:
     @staticmethod
     def price_history(doc):
-        soup = BeautifulSoup(doc, features="html.parser")
-        loaded = json.loads(soup.find(id="lblJSONStock").text)
-        price_history = loaded["snapshot_chart_data"]
+        loaded = json.loads(doc)
+        price_history = loaded["DAT"]["HIS"]
         price_history = [
-            (datetime.fromtimestamp(pair[0] /
-                                    1000).strftime("%d/%m/%Y"), pair[1])
-            for pair in price_history
+            (datetime.fromtimestamp(row[0]
+                                    ).strftime("%d-%m-%Y"), *row[1:])
+            for row in price_history
         ]
         return price_history
 
@@ -112,7 +124,7 @@ class RawExtractor:
         sectors = {dat[1]: dat[4] for dat in sectors}
 
         def simplify(raw):
-            return [ raw[12],
+            return [raw[12],
                     raw[3],
                     raw[19],
                     sectors[raw[4]],
@@ -172,36 +184,29 @@ class RawExtractor:
         return raw
 
 
+def rows_to_df(datasource, doc):
+    return pd.DataFrame(
+        {
+            HEADERS[datasource][j][0]: HEADERS[datasource][j][1](
+                pd.Series([doc[i][j] for i in range(len(doc))])
+            )
+            for j in range(len(HEADERS[datasource]))
+        }
+    )
+
+
 class DataFrameExtractor:
     @staticmethod
     def price_history(doc):
-        date_index, price_points = zip(*doc)
-        df = pd.Series(price_points, index=to_datetime(date_index))
-        return df
+        return rows_to_df("price_history", doc)
 
     @staticmethod
     def daily_bulletin(doc):
-        df = pd.DataFrame(
-            {
-                HEADERS["daily_bulletin"][j][0]: HEADERS["daily_bulletin"][j][1](
-                    pd.Series([doc[i][j] for i in range(len(doc))])
-                )
-                for j in range(len(HEADERS["daily_bulletin"]))
-            }
-        )
-        return df
+        return rows_to_df("daily_bulletin", doc)
 
     @staticmethod
     def listing(doc):
-        df = pd.DataFrame(
-            {
-                HEADERS["listing"][j][0]: HEADERS["listing"][j][1](
-                    pd.Series([doc[i][j] for i in range(len(doc))])
-                )
-                for j in range(len(HEADERS["listing"]))
-            }
-        )
-        return df
+        return rows_to_df("listing",doc)
 
     @staticmethod
     def yearly_income(doc):

@@ -9,5 +9,7 @@ def findata(stock_number, findata_kind):
     return f"https://www.boursakuwait.com.kw/en/stock/financial-data/{findata_kind}#{stock_number}"
 
 
-def profile(stock_number):
-    return f"https://www.boursakuwait.com.kw/en/stock/profile#{stock_number}"
+def price_history(ticker):
+    return f"https://www.boursakuwait.com.kw/chart?UID=&SID=0L=EN&UNC=1&UE=KSE&H=1&M=1&RT=37&E=KSE&S={ticker}%60R&AE=1&CM=3&CT=3&SD=20010121000000&ED=20210121000000"
+
+

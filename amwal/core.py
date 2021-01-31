@@ -31,8 +31,8 @@ class Engine:
         return res
 
     @cached([JsonCache()])
-    def price_history(self, stock_number, verbose=False):
+    def price_history(self, stock_symbol, verbose=False):
         logger.disabled = not verbose
-        res = self.downloader.profile(stock_number)
+        res = self.downloader.price_history(stock_symbol)
         res = RawExtractor.price_history(res)
         return res

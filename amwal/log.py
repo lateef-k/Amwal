@@ -11,4 +11,4 @@ handler.setFormatter(
 logger.addHandler(handler)
 
 # Disable by default
-logger.disabled = True
+logger.disabled = False

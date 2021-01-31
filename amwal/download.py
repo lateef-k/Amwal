@@ -31,11 +31,7 @@ class SyncDownloader:
         logger.info(f"Scraping the listed companies page")
         res = requests.post(
             url.listing,
-            #headers=JSON_HEADER,
-            #cookies=LANG_COOKIE,
-            #json={"cat": "listed", "instrument": ""},
         )
-        #breakpoint()
         return res.content
 
     @staticmethod
@@ -48,9 +44,9 @@ class SyncDownloader:
         return res.content
 
     @staticmethod
-    def profile(stock_number):
-        logger.info(f"Scraping the profile of {stock_number}")
-        res = requests.get(url.profile(stock_number), cookies=LANG_COOKIE)
+    def price_history(ticker):
+        logger.info(f"Scraping the profile of {ticker}")
+        res = requests.get(url.price_history(ticker),headers={'content-type':'application/json'})
         return res.content
 
 
