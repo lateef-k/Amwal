@@ -1,3 +1,5 @@
+from datetime import date
+
 bulletin = "https://www.boursakuwait.com.kw/markets/bulletin_data/daily_bulletin/company_statistics.aspx/getData"
 finlan = "https://www.boursakuwait.com.kw/markets/financial_data/companies.aspx/getData"
 listing = (
@@ -10,6 +12,7 @@ def findata(stock_number, findata_kind):
 
 
 def price_history(ticker):
-    return f"https://www.boursakuwait.com.kw/chart?UID=&SID=0L=EN&UNC=1&UE=KSE&H=1&M=1&RT=37&E=KSE&S={ticker}%60R&AE=1&CM=3&CT=3&SD=20010121000000&ED=20210121000000"
+    today = date.today().strftime("%Y%m%d")+"0"*6
+    return f"https://www.boursakuwait.com.kw/chart?UID=&SID=0L=EN&UNC=1&UE=KSE&H=1&M=1&RT=37&E=KSE&S={ticker}%60R&AE=1&CM=3&CT=3&SD=20010121000000&ED={today}"
 
 

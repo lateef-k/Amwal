@@ -11,6 +11,7 @@ class JsonCache:
     cache_path = Path("amwal_cache")
 
     def __init__(self):
+        print(self.cache_path)
         self._file_extension = ".json"
 
     def __repr__(self):

@@ -8,31 +8,28 @@ class Engine:
         self.downloader = downloader
 
     @cached([JsonCache()])
-    def daily_bulletin(self, date, verbose=False):
+    def daily_bulletin(self, date, ):
         # should validate date here with dateutil.parsing
-        logger.disabled = not verbose
         date = date.replace("_", "/")
         res = self.downloader.daily_bulletin(date)
         res = RawExtractor.daily_bulletin(res)
         return res
 
     @cached([JsonCache()])
-    def listing(self, verbose=False):
-        logger.disabled = not verbose
+    def listing(self, ):
         res = self.downloader.listing()
         res = RawExtractor.listing(res)
         return res
 
     @cached([JsonCache()])
-    def income_statement(self, stock_number, verbose=False):
-        logger.disabled = not verbose
+    def income_statement(self, stock_number, ):
         res = self.downloader.income_statement(stock_number)
         res = RawExtractor.income_statement(res)
         return res
 
     @cached([JsonCache()])
-    def price_history(self, stock_symbol, verbose=False):
-        logger.disabled = not verbose
+    def price_history(self, stock_symbol, ):
+        #changing the logger too late since cache runs first
         res = self.downloader.price_history(stock_symbol)
         res = RawExtractor.price_history(res)
         return res
