@@ -127,10 +127,9 @@ class RawExtractor:
             return [raw[12],
                     raw[3],
                     raw[19],
-                    sectors[raw[4]],
-                    {"P": "Premier Market", "M": "Main Market"}[raw[8]]
+                    sectors.get(raw[4], ''),
+                    {"P": "Premier Market", "M": "Main Market"}.get(raw[8],'')
                     ]
-            return
 
         return list(map(simplify, listing_data))
 
