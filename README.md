@@ -15,7 +15,16 @@ Some features to make life easier
 ## Installation
 
 ```
-pip3 install amwal
+pip install amwal
+```
+
+Make sure you have the latest version installed:
+```
+pip show amwal
+```
+To update:
+```
+pip install amwal --upgrade
 ```
 
 This project depends on the following libraries:
