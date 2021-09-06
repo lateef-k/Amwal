@@ -1,5 +1,6 @@
 
-### (Doesn't work on the new site. Going to fix it)
+### ~~(Doesn't work on the new site. Going to fix it)~~
+### (**0.0.5**: Market.listing and Corporation.price_history works. Take a look at examples **3** and **3.1** below)
 ---
 ## Amwal - Unofficial API For the Kuwaiti Stock Market (Boursa)
 
@@ -28,6 +29,7 @@ This project depends on the following libraries:
 
 The main class representing the market as a whole is `amwal.Market`. For example, to get the companies listed on the Boursa:
 
+*Example 1*
 ```python
 from amwal import Market
 
@@ -39,6 +41,7 @@ The `listing` object is a pandas dataframe mirroring the [listing page](https://
 
 To get the daily price bulletin for 05/05/2020 (day/month/year):
 
+*Example 2*
 ```python 
 from amwal import Market
 
@@ -49,6 +52,7 @@ bulletin = market.daily_bulletin("05/05/2020")
 
 To get information on a specific company, we first get an object representing the company. The `Market` object has a method called `get_corporation`. It takes a valid ticker or stock number and returns a `Corporation` object. For example, to get zain's price history
 
+*Example 3*
 ```python
 from amwal import Market
 market = Market()
@@ -56,10 +60,13 @@ zain = market.get_corporation("zain")
 ```
 we can now get information about Zain by calling the methods of the `zain` object. To get the price history, for example:
 
+*Example 3.1*
 ```python
 price_history = zain.price_history()
 ```
 This will return a dataframe containing price points streching back until 2004. To get Zain's yearly income statement, we call the `yearly_income` method:
+
+*Example 3.2*
 ```python
 yearly_income = zain.yearly_income()
 ```
@@ -73,17 +80,21 @@ You may have noticed that an *amwal_cache* folder has been created in the path w
 
 You can change the name of the folder that Amwal uses to cache or retrieve results by supplying a `cache_path` argument to the `Market` constructor:
 
+*Example 4*
 ```python
 market = Market(cache_path="another_cache")
 ```
 You can also turn off the cache globally by doing the following
 
+*Example 5*
 ```python
 from amwal.cache import JsonCache
 JsonCache.enabled = False
 ```
-
 Or for a single function call by passing the `recompute=True` argument
+
+*Example 6*
+
 ```python
 zain = zain.price_history(recompute=True)
 ```
@@ -132,6 +143,7 @@ class Corporation (ident: str, market: Market, **kwargs)
 
 ### TODO:
 
+- Update library to work with the new Boursa website.
 - Add balance sheet and cash flow statement methods to the corporation class.
 - Change scraping to be asynchronous. 
 
